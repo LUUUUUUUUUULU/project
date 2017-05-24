@@ -8,7 +8,7 @@ const username = process.env.MONGO_USER || 'testuser'
 const password = process.env.MONGO_PASS || 'password'
 const host = process.env.MONGO_HOST || 'ds064299.mlab.com'
 const port = process.env.MONGO_PORT || 64299
-const database = process.env.MONGO_DB || 'bookshop'
+const database = process.env.MONGO_DB || 'lilulu'
 
 mongoose.connect(`mongodb://${username}:${password}@${host}:${port}/${database}`)
 mongoose.Promise = global.Promise
