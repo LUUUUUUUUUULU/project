@@ -2,14 +2,15 @@
 'use strict'
 
 const auth = require('./modules/authorisation')
-const google = require('./modules/google')
+//const google = require('./modules/google')
+const amazon = require('./modules/amazon')
 const persistence = require('./modules/persistence')
 
 // ------------------ ROUTE FUNCTIONS ------------------ 
 
 exports.search = (request, callback) => {
 	extractParam(request, 'q').then( query => {
-		return google.searchByString(query)
+		return amazon.searchByString(query)
 	}).then( data => {
 		return this.cleanArray(request, data)
 	}).then( data => {
@@ -21,7 +22,7 @@ exports.search = (request, callback) => {
 
 exports.addToCartOld = (request, callback) => {
 	extractBodyKey(request, 'id').then( id => {
-		return google.getByID(id)
+		return amazon.getByID(id)
 	}).then( book => {
 		return persistence.saveBook(book)
 	}).catch( err => {
@@ -43,7 +44,7 @@ exports.addToCart = (request, callback) => {
 		return extractBodyKey(request, 'id')
 	}).then( id => {
 		this.id = id
-		return google.getByID(id)
+		return amazon.getByID(id)
 	}).then( (book) => {
 		this.book = book
 		return persistence.bookExists(this.username, this.id)
