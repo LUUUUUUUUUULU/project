@@ -2,9 +2,10 @@
 'use strict'
 
 const auth = require('./modules/authorisation')
-//const google = require('./modules/google')
 const amazon = require('./modules/amazon')
 const persistence = require('./modules/persistence')
+
+const defaultHost = "http://localhost:8080"
 
 // ------------------ ROUTE FUNCTIONS ------------------ 
 
@@ -112,19 +113,24 @@ const extractBodyKey = (request, key) => new Promise( (resolve, reject) => {
 })
 
 exports.cleanArray = (request, data) => new Promise((resolve) => {
-	const host = request.host || 'http://localhost'
-	const clean = data.items.map(element => {
-		return {
-			title: element.volumeInfo.title,
-			link: `${host}/books/${element.id}`
+	const host = request.host || defaultHost;
+
+	const clean = Array.from(data.document.querySelectorAll("div.a-row.a-spacing-none > a")).map(element => {
+		var href = element.href.split("/ref=")[0];
+		var id = href.substr(href.lastIndexOf('/')+1);
+		if(element.title != ""){
+			return {
+				title: element.title,
+				link: `${host}/books/${id}`
+			}
 		}
-	})
+	});
 
 	resolve({books: clean})
 })
 
 exports.removeMongoFields = (request, data) => new Promise( (resolve, reject) => {
-	const host = request.host || 'http://localhost'
+	const host = request.host || defaultHost;
 	const clean = data.map(element => {
 		return {
 			title: element.title,
