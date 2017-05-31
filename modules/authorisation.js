@@ -4,11 +4,9 @@
 const bcrypt = require('bcryptjs')
 
 exports.getHeaderCredentials = request => new Promise( (resolve, reject) => {
-	/* TODO: for testing create account
 	if (request.authorization === undefined || request.authorization.basic === undefined) {
 		reject(new Error('authorization header missing'))
 	}
-	*/
 	const auth = request.authorization.basic
 
 	if (auth.username === undefined || auth.password === undefined) {

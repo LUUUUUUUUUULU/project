@@ -79,6 +79,32 @@ server.post('/accounts', (req, res) => {
 	})
 })
 
+server.post('/login', (req, res) => {
+	bookshop.login(req, (err, data) => {
+		res.setHeader('content-type', 'application/json')
+		res.setHeader('accepts', 'GET, POST')
+		if (err) {
+			res.send(status.badRequest, {error: err.message})
+		} else {
+			res.send(status.ok, {userInfo: data})
+		}
+		res.end()
+	})
+})
+
+server.post('/register', (req, res) => {
+	bookshop.register(req, (err, data) => {
+		res.setHeader('content-type', 'application/json')
+		res.setHeader('accepts', 'GET, POST')
+		if (err) {
+			res.send(status.badRequest, {error: err.message})
+		} else {
+			res.send(status.ok, {userInfo: data})
+		}
+		res.end()
+	})
+})
+
 const port = process.env.PORT || defaultPort
 
 server.listen(port, err => {

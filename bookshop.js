@@ -100,6 +100,45 @@ exports.addUser = (request, callback) => {
 	})
 }
 
+exports.register = (request, callback) => {
+	let data
+	data = {name: '', username: '', password: ''}
+	extractBodyKey(request, 'username').then( name => {
+		data.name = data.username = name
+		return extractBodyKey(request, 'password')
+	}).then( password => {
+		data.password = password
+		return auth.hashPassword(data)
+	}).then( credentials => {
+		return persistence.accountExists(credentials)
+	}).then( () => {
+		return persistence.addAccount(data)
+	}).then( data => {
+		callback(null, data)
+	}).catch( err => {
+		callback(err)
+	})
+}
+
+exports.login = (request, callback) => {
+	let data
+	auth.getHeaderCredentials(request).then( credentials => {
+		data = {username: credentials.username, password: credentials.password}
+		return auth.hashPassword(credentials)
+	}).then( credentials => {
+		return persistence.getCredentials(credentials)
+	}).then( account => {
+		const hash = account[0].password
+		return auth.checkPassword(data.password, hash)
+	}).then(()=>{
+		return persistence.getAccount(data)
+	}).then( userInfo => {
+		callback(null, userInfo)
+	}).catch( err => {
+		callback(err)
+	})
+}
+
 // ------------------ UTILITY FUNCTIONS ------------------
 
 const extractParam = (request, param) => new Promise( (resolve, reject) => {

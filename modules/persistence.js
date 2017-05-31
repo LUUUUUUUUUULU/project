@@ -17,6 +17,13 @@ exports.saveBook = bookDetails => new Promise( (resolve, reject) => {
 	})
 })
 
+exports.getAccount = account => new Promise( (resolve, reject) => {
+	schema.User.find({username: account.username}, (err, docs) => {
+		if (docs.length == 0 ) reject(new Error(`${account.username} could not be found!`))
+		resolve({name: docs[0].name, username: docs[0].username})
+	})
+})
+
 exports.addAccount = details => new Promise( (resolve, reject) => {
 	if (!'username' in details && !'password' in details && !'name' in details) {
 		reject(new Error('invalid user object'))
@@ -34,7 +41,7 @@ exports.addAccount = details => new Promise( (resolve, reject) => {
 
 exports.accountExists = account => new Promise( (resolve, reject) => {
 	schema.User.find({username: account.username}, (err, docs) => {
-		if (docs.length) reject(new Error(`username already exists`))
+		if (docs.length) reject(new Error(`${account.username} already exists`))
 		resolve()
 	})
 })
