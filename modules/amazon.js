@@ -5,8 +5,12 @@ const request = require('request');
 const jsdom = require('jsdom');
 const {JSDOM} = jsdom;
 
-exports.searchByString = query => new Promise( (resolve, reject) => {
-	const url = `https://www.amazon.co.uk/s/ref=nb_sb_noss_2?url=search-alias%3Dstripbooks&field-keywords=${query}`;
+const zeroLength = 0
+const firstIndex = 0
+
+exports.searchByString = query => new Promise((resolve, reject) => {
+	const url = 'https://www.amazon.co.uk/s/ref=nb_sb_noss_2' +
+		`?url=search-alias%3Dstripbooks&field-keywords=${query}`;
 
 	request.get(url, (err, res, body) => {
 		if (err) {
@@ -18,39 +22,44 @@ exports.searchByString = query => new Promise( (resolve, reject) => {
 	})
 })
 
-exports.getByISBN = isbn => new Promise( (resolve, reject) => {
+exports.getByISBN = isbn => new Promise((resolve, reject) => {
 	const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`
 
-	request.get( url, (err, res, body) => {
-		if (err) reject(Error('could not complete request'))
+	request.get(url, (err, res, body) => {
+		if (err) {
+			reject(Error('could not complete request'))
+		}
 		const json = JSON.parse(body)
 
-		if (json.totalItems === 0) {
+		if (json.totalItems === zeroLength) {
 			reject(Error('book not found'))
 		}
 		const data = {
-			title: `${json.items[0].volumeInfo.title}: ${json.items[0].volumeInfo.subtitle}`,
-			authors: json.items[0].volumeInfo.authors[0],
-			description: json.items[0].volumeInfo.description
+			title: `${json.items[firstIndex].volumeInfo.title}:` +
+				` ${json.items[firstIndex].volumeInfo.subtitle}`,
+			authors: json.items[firstIndex].volumeInfo.authors[firstIndex],
+			description: json.items[firstIndex].volumeInfo.description
 		}
 
 		resolve(data)
 	})
 })
 
-exports.getByID = id => new Promise( (resolve, reject) => {
+exports.getByID = id => new Promise((resolve, reject) => {
 	const url = `https://www.googleapis.com/books/v1/volumes/${id}`
 
-	request.get( url, (err, res, body) => {
-		if (err) reject(Error('could not complete request'))
+	request.get(url, (err, res, body) => {
+		if (err) {
+			reject(Error('could not complete request'))
+		}
 		const json = JSON.parse(body)
 
-		if (json.totalItems === 0) {
+		if (json.totalItems === zeroLength) {
 			reject(Error('book not found'))
 		}
 		const data = {
 			title: `${json.volumeInfo.title}: ${json.volumeInfo.subtitle}`,
-			authors: json.volumeInfo.authors[0],
+			authors: json.volumeInfo.authors[firstIndex],
 			description: json.volumeInfo.description.replace(/<(.|\n)*?>/g, ''),
 			bookID: id
 		}
