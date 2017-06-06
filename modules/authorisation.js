@@ -22,6 +22,9 @@ exports.getHeaderCredentials = request => new Promise((resolve, reject) => {
 })
 
 exports.hashPassword = credentials => new Promise((resolve, reject) => {
+	if (typeof resolve === 'undefined') {
+		reject(new Error('hashPassword error'))
+	}
   const salt = bcrypt.genSaltSync(saltNumber)
 
   credentials.password = bcrypt.hashSync(credentials.password, salt)

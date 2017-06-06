@@ -1,14 +1,16 @@
+/* global describe beforeEach it expect fail  */
 
-"use strict"
+'use strict'
 
-var fs = require('fs')
-var rewire = require('rewire')
+// Original var fs = require('fs')
+const rewire = require('rewire')
 
-var auth = rewire("../modules/auth")
+const auth = rewire('../modules/auth')
+const one = 1
 
 describe('Auth Model', () => {
 	
-	beforeEach( () => {
+	beforeEach(() => {
 		auth.clearAccounts()
 	})
 	
@@ -16,23 +18,31 @@ describe('Auth Model', () => {
 	
 		it('create a single valid account', () => {
 			try {
-				let user = auth.createAccount('testuser', 'p455w0rd')
-				expect(user).toEqual({status: 'success', username: 'testuser'})
-			} catch(err) {
+				const user = auth.createAccount('testuser', 'p455w0rd')
+
+				expect(user).toEqual({
+					status: 'success',
+					username: 'testuser'
+				})
+			} catch (err) {
 				fail('error should not be thrown')
 			} finally {
-				expect(auth.count).toBe(1)
+				expect(auth.count).toBe(one)
 			}
 		})
 	
 		it('create a user with a different username/password', () => {
 			try {
-				let user = auth.createAccount('testuser2', 'password')
-				expect(user).toEqual({status: 'success', username: 'testuser2'})
-			} catch(err) {
+				const user = auth.createAccount('testuser2', 'password')
+
+				expect(user).toEqual({
+					status: 'success',
+					username: 'testuser2'
+				})
+			} catch (err) {
 				fail('error should not be thrown')
 			} finally {
-				expect(auth.count).toBe(1)
+				expect(auth.count).toBe(one)
 			}
 		})
 	
@@ -41,10 +51,10 @@ describe('Auth Model', () => {
 				auth.createAccount('testuser', 'p455w0rd')
 				expect(auth.createAccount('testuser', 'p455w0rd')).toThrow()
 				fail('this line should not be run')
-			} catch(err) {
+			} catch (err) {
 				expect(err.message).toBe('account testuser already exists')
 			} finally {
-				expect(auth.count).toBe(1)
+				expect(auth.count).toBe(one)
 			}
 		})
 	
@@ -52,10 +62,10 @@ describe('Auth Model', () => {
 			try {
 				auth.createAccount('testuser', 'p455w0rd')
 				expect(auth.createAccount('', 'p455w0rd')).toThrow()
-			} catch(err) {
+			} catch (err) {
 				expect(err.message).toBe('username parameter missing')
 			} finally {
-				expect(auth.count).toBe(1)
+				expect(auth.count).toBe(one)
 			}
 		})
 	})
@@ -65,9 +75,10 @@ describe('Auth Model', () => {
 			try {
 				auth.createAccount('testuser', 'p455w0rd')
 				const res = auth.logIn('testuser', 'p455w0rd')
+
 				expect(res).toBeDefined()
 				expect(res.username).toBe('testuser')
-			} catch(err) {
+			} catch (err) {
 				fail('error should not be thrown')
 			}
 		})
@@ -77,7 +88,7 @@ describe('Auth Model', () => {
 				auth.createAccount('testuser', 'p455w0rd')
 				auth.logIn('testuser2', 'p455w0rd')
 				fail('error should have been thrown')
-			} catch(err) {
+			} catch (err) {
 				expect(err.message).toBe('account testuser2 does not exist')
 			}
 		})
@@ -87,10 +98,10 @@ describe('Auth Model', () => {
 				auth.createAccount('testuser', 'p455w0rd')
 				auth.logIn('testuser', 'password')
 				fail('error should have been thrown')
-			} catch(err) {
+			} catch (err) {
 				expect(err.message).toBe('invalid password')
 			}
-		})	
+		})
 	})
 
 })

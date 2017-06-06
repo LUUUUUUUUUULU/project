@@ -1,10 +1,12 @@
+/* global describe xit */
+/* eslint no-empty-function: "off" */
 
-"use strict"
+'use strict'
 
-var fs = require('fs')
-var rewire = require('rewire')
+// Original var fs = require('fs')
+// Original var rewire = require('rewire')
 
-var auth = rewire("../modules/auth")
+// Original var auth = rewire("../modules/auth")
 
 describe('Favourites Model', () => {
 	
@@ -17,7 +19,8 @@ describe('Favourites Model', () => {
 		xit('should flag error if user not specified', () => {
 			
 		})
-		
+
+		/* eslint max-len: ["error", 100] */
 		xit('should prevent invalid book being added to list of registered user', () => {
 			
 		})
