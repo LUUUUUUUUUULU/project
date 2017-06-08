@@ -1,106 +1,258 @@
-/* global describe beforeEach it expect fail  */
+/* global describe beforeEach it expect fail waitsFor runs done */
+/* eslint func-names: "off" */
 
 'use strict'
 
-// Original var fs = require('fs')
+// Original const fs = require('fs')
 const rewire = require('rewire')
+const persistence = require('../modules/persistence')
+const AsyncSpec = require('node-jasmine-async');
 
-const auth = rewire('../modules/auth')
+//const auth = rewire('../modules/authorisation')
+const auth = rewire('../modules/authorisation')
+
 const one = 1
+const waitMiliSeconds = 60000
+let flag = false
+let testReturn = null
 
-describe('Auth Model', () => {
-	
-	beforeEach(() => {
-		auth.clearAccounts()
-	})
-	
+const setFlagAsTrue = () => {
+	flag = true;
+}
+
+const resolvedPromise = () => {
+    return Promise.resolve('Test')
+}
+
+const asyncFunc = async (asyncResource) => {
+    await resolvedPromise()
+    await asyncResource.fetchItem()
+}
+
+describe('Auth Model', function () {
+    /* eslint no-invalid-this: "off" */
+    const async = new AsyncSpec(this)
+
+    /* eslint prefer-arrow-callback: "off" */
+    async.beforeEach(done => {
+        auth.clearAccounts(() => {
+            done()
+        })
+    });
+
 	describe('create accounts', () => {
-	
-		it('create a single valid account', () => {
+		async.it(
+            'create a single valid account', done => {
 			try {
-				const user = auth.createAccount('testuser', 'p455w0rd')
+				testReturn = {data: null}
+                flag = false
 
-				expect(user).toEqual({
-					status: 'success',
-					username: 'testuser'
-				})
+				auth.createAccount({
+					username: 'testuser',
+					password: 'p455w0rd'
+				}, userInfo => {
+                    testReturn.data = userInfo
+                    setFlagAsTrue()
+                    expect(testReturn.data.username).toEqual('testuser')
+                    expect(testReturn.data).toEqual({
+                        status: 'success',
+                        username: 'testuser'
+                    })
+                })
+                waitsFor(() => flag, 'Wait for flag', waitMiliSeconds)
 			} catch (err) {
 				fail('error should not be thrown')
 			} finally {
-				expect(auth.count).toBe(one)
-			}
+                done()
+            }
 		})
-	
-		it('create a user with a different username/password', () => {
-			try {
-				const user = auth.createAccount('testuser2', 'password')
 
-				expect(user).toEqual({
-					status: 'success',
-					username: 'testuser2'
-				})
+		async.it(
+            'should prevent duplicate usernames  from being inserted', function (done) {
+                done()
+		})
+
+		async.it(
+            'should throw an error if missing username', function (done) {
+			try {
+				testReturn = {data: null}
+                flag = false
+
+                let foundError = false
+				auth.createAccount({
+					password: 'p455w0rd'
+				}, userInfo => {
+                    testReturn.data = userInfo
+                    expect(testReturn.data.username).toEqual('testuser')
+                    expect(testReturn.data).toEqual({
+                        status: 'success',
+                        username: 'testuser'
+                    })
+                }).
+                catch(e => {
+                    foundError = true
+                    expect(e.message).toBe('missing account info to create!')
+                    setFlagAsTrue()
+                    done()
+                })
+
+                waitsFor(() => flag, 'Wait for flag', waitMiliSeconds)
 			} catch (err) {
+                console.log(err)
 				fail('error should not be thrown')
 			} finally {
-				expect(auth.count).toBe(one)
-			}
+                done()
+            }
 		})
-	
-		it('should prevent duplicate usernames  from being inserted', () => {
-			try {
-				auth.createAccount('testuser', 'p455w0rd')
-				expect(auth.createAccount('testuser', 'p455w0rd')).toThrow()
-				fail('this line should not be run')
-			} catch (err) {
-				expect(err.message).toBe('account testuser already exists')
-			} finally {
-				expect(auth.count).toBe(one)
-			}
-		})
-	
-		it('should throw an error if missing username', () => {
-			try {
-				auth.createAccount('testuser', 'p455w0rd')
-				expect(auth.createAccount('', 'p455w0rd')).toThrow()
-			} catch (err) {
-				expect(err.message).toBe('username parameter missing')
-			} finally {
-				expect(auth.count).toBe(one)
-			}
-		})
-	})
-	
-	describe('Log In', () => {
-		it('should allow registered user to login', () => {
-			try {
-				auth.createAccount('testuser', 'p455w0rd')
-				const res = auth.logIn('testuser', 'p455w0rd')
+    })
+    	
+	describe('getHeaderCredentials', () => {
+		async.it('throw error if missing request', function(done) {
+            let errCounter = 0
 
-				expect(res).toBeDefined()
-				expect(res.username).toBe('testuser')
-			} catch (err) {
-				fail('error should not be thrown')
-			}
+            auth.createAccount({
+                username: 'testuser',
+                password: 'p455w0rd'
+            }).
+            then(() => {
+                auth.getHeaderCredentials().
+                then(() => {
+
+                }).
+                catch (err => {
+                    expect(err.message).toBe('authorization header missing')
+                    errCounter++
+                    done()
+                })
+            })
 		})
-	
-		it('should prevent unregistered user from logging in', () => {
-			try {
-				auth.createAccount('testuser', 'p455w0rd')
-				auth.logIn('testuser2', 'p455w0rd')
-				fail('error should have been thrown')
-			} catch (err) {
-				expect(err.message).toBe('account testuser2 does not exist')
-			}
+
+		async.it('throw error if missing authorization', function(done) {
+            let errCounter = 0
+
+            auth.createAccount({
+                username: 'testuser',
+                password: 'p455w0rd'
+            }).
+            then(() => {
+                auth.getHeaderCredentials({authorization: ''}).
+                then(() => {
+
+                }).
+                catch (err => {
+                    expect(err.message).toBe('authorization header missing')
+                    errCounter++
+                    done()
+                })
+            })
 		})
-	
-		it('should prevent invalid password being accepted', () => {
-			try {
-				auth.createAccount('testuser', 'p455w0rd')
-				auth.logIn('testuser', 'password')
-				fail('error should have been thrown')
-			} catch (err) {
-				expect(err.message).toBe('invalid password')
-			}
+
+		async.it('throw error if missing authorization', function(done) {
+            let errCounter = 0
+
+            auth.createAccount({
+                username: 'testuser',
+                password: 'p455w0rd'
+            }).
+            then(() => {
+                auth.getHeaderCredentials({}).
+                then(() => {
+
+                }).
+                catch (err => {
+                    expect(err.message).toBe('authorization header missing')
+                    errCounter++
+                    done()
+                })
+            })
+		})
+
+		async.it('throw error if missing authorization.basic', function(done) {
+            let errCounter = 0
+
+            auth.createAccount({
+                username: 'testuser',
+                password: 'p455w0rd'
+            }).
+            then(() => {
+                auth.getHeaderCredentials({authorization: {}}).
+                then(() => {
+
+                }).
+                catch (err => {
+                    expect(err.message).toBe('authorization header missing')
+                    errCounter++
+                    done()
+                })
+            })
+		})
+
+		async.it('throw error if missing username', function(done) {
+            let errCounter = 0
+
+            auth.createAccount({
+                username: 'testuser',
+                password: 'p455w0rd'
+            }).
+            then(() => {
+                auth.getHeaderCredentials({authorization: {basic: {}}}).
+                then(() => {
+
+                }).
+                catch (err => {
+                    expect(err.message).toBe('missing username / password')
+                    errCounter++
+                    done()
+                })
+            })
+		})
+
+		async.it('throw error if missing password', function(done) {
+            let errCounter = 0
+
+            auth.createAccount({
+                username: 'testuser',
+                password: 'p455w0rd'
+            }).
+            then(() => {
+                auth.getHeaderCredentials({authorization: {basic: {username: 'testuser'}}}).
+                then(() => {
+
+                }).
+                catch (err => {
+                    expect(err.message).toBe('missing username / password')
+                    errCounter++
+                    done()
+                })
+            })
+		})
+
+		async.it('get the header credential info', function(done) {
+            let errCounter = 0
+
+            auth.createAccount({
+                username: 'testuser',
+                password: 'p455w0rd'
+            }).
+            then(() => {
+                auth.getHeaderCredentials({
+                    authorization: {
+                        basic: {
+                            username: 'testuser',
+                            password: "p455w0rd"
+                        }
+                    }
+                }).
+                then((userInfo) => {
+                    expect(userInfo.username).toBe('testuser')
+                    expect(userInfo.password).toBe('p455w0rd')
+                    console.log(userInfo)
+                    done()
+                }).
+                catch (err => {
+                    fail('should not reach here')
+                })
+            })
 		})
 	})
 

@@ -2,11 +2,53 @@
 'use strict'
 
 const bcrypt = require('bcryptjs')
+const persistence = require('./persistence')
 const saltNumber = 10
 
+/* eslint no-unused-vars: "off" */
+exports.clearAccounts = callBack => new Promise((resolve, reject) => {
+	persistence.clearAccounts().
+	then(count => {
+		if (typeof callBack !== 'undefined') {
+			callBack(count)
+		}
+		resolve()
+	})
+})
+
+exports.createAccount = (request, callBack) =>
+	new Promise((resolve, reject) => {
+	if (typeof request.username === 'undefined' ||
+			typeof request.password === 'undefined') {
+		reject(new Error('missing account info to create!'))
+	}
+
+	const result = {
+		status: 'success',
+		username: ''
+	}
+
+	persistence.addAccount({
+		name: request.username,
+		username: request.username,
+		password: request.password
+	}).
+	then(userInfo => {
+		result.username = userInfo.username
+		if (typeof callBack !== 'undefined') {
+			callBack(result)
+		}
+		resolve(result)
+	}).
+	catch(err => {
+		reject(err)
+	})
+})
+
 exports.getHeaderCredentials = request => new Promise((resolve, reject) => {
-	if (typeof request.authorization === 'undefined' ||
-			typeof request.authorization.basic === 'undefined') {
+	if (typeof request === 'undefined' ||
+		typeof request.authorization === 'undefined' ||
+		typeof request.authorization.basic === 'undefined') {
 		reject(new Error('authorization header missing'))
 	}
 	const auth = request.authorization.basic

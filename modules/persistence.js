@@ -6,6 +6,57 @@ const schema = require('../schema/schema')
 const zeroLength = 0
 const firstIndex = 0
 
+exports.clearAccounts = () => new Promise((resolve, reject) => {
+	schema.User.count().
+	then(count => {
+		if (count > zeroLength) {
+			try {
+				schema.User.find({}).
+				remove().
+				exec((err, res) => {
+					if (err) {
+						reject(new Error(err))
+					}
+					resolve(res)
+				})
+			} catch (err) {
+				reject(new Error(err))
+			}
+		} else {
+			resolve()
+		}
+	})
+
+})
+
+exports.addAccount = details => new Promise((resolve, reject) => {
+	if (typeof details.username === 'undefined' ||
+		typeof details.password === 'undefined' ||
+		typeof details.name === 'undefined') {
+		reject(new Error('invalid user object'))
+	}
+	const user = new schema.User(details)
+
+	schema.User.find({username: details.username}, (err, docs) => {
+		if (err) {
+			reject(new Error('error checking account'))
+		}
+		if (docs.length) {
+			reject(new Error(`${details.username} already exists`))
+		}
+	}).
+	then(() => {
+		user.save((err, userRow) => {
+			if (err) {
+				reject(new Error('error creating account'))
+			}
+			resolve(userRow)
+		})
+	})
+
+
+})
+
 exports.saveBook = bookDetails => new Promise((resolve, reject) => {
 	if (!('title' in bookDetails) &&
 		!('authors' in bookDetails) &&
@@ -34,23 +85,6 @@ exports.getAccount = account => new Promise((resolve, reject) => {
 			name: docs[firstIndex].name,
 			username: docs[firstIndex].username
 		})
-	})
-})
-
-exports.addAccount = details => new Promise((resolve, reject) => {
-	if (!('username' in details) &&
-		!('password' in details) &&
-		!('name' in details)) {
-		reject(new Error('invalid user object'))
-	}
-	const user = new schema.User(details)
-
-	user.save((err, userRow) => {
-		if (err) {
-			reject(new Error('error creating account'))
-		}
-		Reflect.deleteProperty(userRow, 'password')
-		resolve(userRow)
 	})
 })
 

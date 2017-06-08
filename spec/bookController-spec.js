@@ -9,7 +9,7 @@ const pageNotFoundCode = 404
 const bookSize = 3
 
 // Original var bookController = rewire("../modules/bookController")
-const books = rewire('../modules/books')
+const books = rewire('../bookshop')
 
 const setData = file => {
 	books.__set__('apiCall', (search, callback) => {

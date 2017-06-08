@@ -14,7 +14,8 @@ const database = process.env.MONGO_DB || 'bookshop'
 mongoose.connect(
 	`mongodb://${username}:${password}@${host}:${port}/${database}`)
 mongoose.Promise = global.Promise
-const {Schema} = mongoose.Schema
+/* eslint prefer-destructuring: "off" */
+const Schema = mongoose.Schema
 
 // Create a schema
 const userSchema = new Schema({
@@ -28,11 +29,11 @@ exports.User = mongoose.model('User', userSchema)
 
 // Create a schema
 const bookSchema = new Schema({
-  account: String,
+    account: String,
 	title: String,
 	authors: String,
 	description: String,
-  bookID: String
+    bookID: String
 })
 
 // Create a model using the schema

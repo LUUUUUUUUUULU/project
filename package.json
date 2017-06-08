@@ -22,12 +22,13 @@
   "author": "Mark J Tyers",
   "license": "ISC",
   "dependencies": {
+    "async": "^2.4.1",
     "bcryptjs": "^2.4.3",
+    "jsdom": "^11.0.0",
     "mongoose": "^4.6.7",
     "node-persist": "0.0.8",
     "request": "^2.67.0",
-    "restify": "^4.0.3",
-    "jsdom": "^11.0.0"
+    "restify": "^4.0.3"
   },
   "engines": {
     "node": "5.1.0"
@@ -41,6 +42,7 @@
     "eslint-plugin-standard": "^3.0.1",
     "istanbul": "^0.4.1",
     "jasmine-node": "^1.14.5",
+    "node-jasmine-async": "^0.1.0",
     "rewire": "^2.5.1"
   }
 }
