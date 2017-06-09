@@ -53,32 +53,6 @@ server.post('/cart', (req, res) => {
 	})
 })
 
-server.get('/cart', (req, res) => {
-	bookshop.showCart(req, (err, data) => {
-		res.setHeader('content-type', 'application/json')
-		res.setHeader('accepts', 'GET, POST')
-		if (err) {
-			res.send(status.badRequest, {error: err.message})
-		} else {
-			res.send(status.ok, data)
-		}
-		res.end()
-	})
-})
-
-server.post('/accounts', (req, res) => {
-	bookshop.addUser(req, (err, data) => {
-		res.setHeader('content-type', 'application/json')
-		res.setHeader('accepts', 'GET, POST')
-		if (err) {
-			res.send(status.badRequest, {error: err.message})
-		} else {
-			res.send(status.added, {user: data})
-		}
-		res.end()
-	})
-})
-
 server.post('/login', (req, res) => {
 	bookshop.login(req, (err, data) => {
 		res.setHeader('content-type', 'application/json')

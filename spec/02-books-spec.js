@@ -93,8 +93,10 @@ describe('Book Model', function () {
                             password: 'p455w0rd'
                         }
                     },
-                    bookId: 'bookId1',
-                    bookName: 'bookName1'
+                    params: {
+                        bookId: 'bookId1',
+                        bookName: 'bookName1'
+                    }
                 }, (err, data) => {
                     expect(err).toBe(null)
                     expect(data.account).toBe('testuser')
@@ -125,7 +127,7 @@ describe('Book Model', function () {
                             password: 'p455w0rd'
                         }
                     },
-                    bookId: 'bookId2'
+                    params: {bookId: 'bookId2'}
                 }, (err, data) => {
                     expect(err.message).
                     toBe(
@@ -156,7 +158,7 @@ describe('Book Model', function () {
                             password: 'p455w0rd'
                         }
                     },
-                    bookName: 'bookName2'
+                    params: {bookName: 'bookName2'}
                 }, (err, data) => {
                     expect(err.message).
                     toBe(

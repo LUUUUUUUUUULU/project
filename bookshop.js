@@ -85,15 +85,16 @@ exports.addToCart = (request, callback) => {
 	}).
 	then(() => {
 		if (typeof request === 'undefined' ||
-			typeof request.bookId === 'undefined' ||
-			typeof request.bookName === 'undefined') {
+			typeof request.params === 'undefined' ||
+			typeof request.params.bookId === 'undefined' ||
+			typeof request.params.bookName === 'undefined') {
 			throw new Error(
 				'missing book info in request body {bookId: "", bookName: ""}')
 		}
 		persistence.saveCart({
 			account: temp.username,
-			title: request.bookName,
-			bookId: request.bookId
+			title: request.params.bookName,
+			bookId: request.params.bookId
 		}).then(bookInfo => {
 			callback(null, bookInfo)
 		})

@@ -50,7 +50,10 @@ exports.addAccount = details => new Promise((resolve, reject) => {
 			if (err) {
 				reject(new Error('error creating account'))
 			}
-			resolve(userRow)
+			resolve({
+				username: userRow.username,
+				name: userRow.name
+			})
 		})
 	})
 
