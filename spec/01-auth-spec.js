@@ -6,7 +6,7 @@
 const rewire = require('rewire')
 const AsyncSpec = require('node-jasmine-async');
 
-const auth = rewire('../modules/authorisation')
+const auth = rewire('../modules/authorization')
 
 const waitMiliSeconds = 60000
 let flag = false

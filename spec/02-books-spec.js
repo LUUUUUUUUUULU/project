@@ -6,7 +6,7 @@
 // Original const fs = require('fs')
 const rewire = require('rewire')
 const AsyncSpec = require('node-jasmine-async');
-const auth = rewire('../modules/authorisation')
+const auth = rewire('../modules/authorization')
 const books = rewire('../bookshop.js')
 
 const zero = 0

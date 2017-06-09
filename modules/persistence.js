@@ -1,11 +1,22 @@
 
 'use strict'
 
+/**
+ * Persistence Module.
+ * @module Persistence
+ */
+
+/** The schema handler for database operation */
 const schema = require('../schema/schema')
 
+/** These are consts for comparison */
 const zeroLength = 0
 const firstIndex = 0
 
+/**
+ * Clear all accounts in database
+ * @returns {Object} Nothing
+ */
 exports.clearAccounts = () => new Promise((resolve, reject) => {
 	schema.User.count().
 	then(count => {
@@ -29,6 +40,11 @@ exports.clearAccounts = () => new Promise((resolve, reject) => {
 
 })
 
+/**
+ * Creates account according passed account information
+ * @param {Json} details - The Json object containing the account information
+ * @returns {Object} The newly created account information
+ */
 exports.addAccount = details => new Promise((resolve, reject) => {
 	if (typeof details.username === 'undefined' ||
 		typeof details.password === 'undefined' ||
@@ -60,6 +76,11 @@ exports.addAccount = details => new Promise((resolve, reject) => {
 
 })
 
+/**
+ * Adds the book into the cart
+ * @param {Json} cartDetails - The account and book information
+ * @returns {Object} The cart information
+ */
 exports.saveCart = cartDetails => new Promise((resolve, reject) => {
 	if (typeof cartDetails.account === 'undefined' ||
 		typeof cartDetails.title === 'undefined' ||
@@ -80,22 +101,11 @@ exports.saveCart = cartDetails => new Promise((resolve, reject) => {
 	})
 })
 
-exports.saveBook = bookDetails => new Promise((resolve, reject) => {
-	if (!('title' in bookDetails) &&
-		!('authors' in bookDetails) &&
-		!('description' in bookDetails)) {
-		reject(new Error('invalid book object'))
-	}
-	const book = new schema.Book(bookDetails)
-
-	book.save((err, bookRow) => {
-		if (err) {
-			reject(new Error('an error saving book'))
-		}
-		resolve(bookRow)
-	})
-})
-
+/**
+ * Get account information from database
+ * @param {Json} account - The parameter contains the username information
+ * @returns {Object} The account information
+ */
 exports.getAccount = account => new Promise((resolve, reject) => {
 	schema.User.find({username: account.username}, (err, docs) => {
 		if (err) {
@@ -111,6 +121,11 @@ exports.getAccount = account => new Promise((resolve, reject) => {
 	})
 })
 
+/**
+ * If the account already exists reject
+ * @param {Json} account - The account informatino
+ * @returns {Object} Nothing
+ */
 exports.accountExists = account => new Promise((resolve, reject) => {
 	schema.User.find({username: account.username}, (err, docs) => {
 		if (err) {
@@ -123,6 +138,11 @@ exports.accountExists = account => new Promise((resolve, reject) => {
 	})
 })
 
+/**
+ * Gets the credential information from database
+ * @param {Json} credentials - The account username infromation
+ * @returns {Object} The account credential information
+ */
 exports.getCredentials = credentials => new Promise((resolve, reject) => {
 	schema.User.find({username: credentials.username}, (err, docs) => {
 		if (err) {
@@ -132,32 +152,5 @@ exports.getCredentials = credentials => new Promise((resolve, reject) => {
 			resolve(docs)
 		}
 		reject(new Error('invalid username'))
-	})
-})
-
-exports.bookExists = (username, book) => new Promise((resolve, reject) => {
-	schema.Book.find({
-		account: username,
-		bookID: book
-	}, (err, docs) => {
-		if (err) {
-			reject(new Error('database error'))
-		}
-		if (docs.length) {
-			reject(new Error('book already in cart'))
-		}
-		resolve()
-	})
-})
-
-exports.getBooksInCart = user => new Promise((resolve, reject) => {
-	schema.Book.find({account: user}, (err, docs) => {
-		if (err) {
-			reject(new Error('database error'))
-		}
-		if (!docs.length) {
-			reject(new Error('shopping cart empty'))
-		}
-		resolve(docs)
 	})
 })
