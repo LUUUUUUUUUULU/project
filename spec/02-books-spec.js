@@ -1,93 +1,190 @@
-/* global describe it expect */
-/* eslint no-underscore-dangle: ["error", {"allow": ["books", "__set__"]}] */
-const fs = require('fs')
-const rewire = require('rewire')
+/* global describe beforeEach it expect fail waitsFor runs done */
+/* eslint func-names: "off" */
 
-const books = rewire('../modules/books')
+'use strict'
+
+// Original const fs = require('fs')
+const rewire = require('rewire')
+const persistence = require('../modules/persistence')
+const AsyncSpec = require('node-jasmine-async');
+const auth = rewire('../modules/authorisation')
+const books = rewire('../bookshop.js')
 
 const zero = 0
-const third = 3
+const one = 1
+const waitMiliSeconds = 60000
+let flag = false
+let testReturn = null
 
-// Original function setData (file) {
-const setData = file => {
-	books.__set__('apiCall', (search, callback) => {
-		const data = fs.readFileSync('spec/data/' + file, 'utf8')
-		
-		callback(null, JSON.parse(data))
-	})
+const setFlagAsTrue = () => {
+	flag = true;
 }
 
-describe('Book Model', () => {
-	
+const resolvedPromise = () => {
+    return Promise.resolve('Test')
+}
+
+const asyncFunc = async (asyncResource) => {
+    await resolvedPromise()
+    await asyncResource.fetchItem()
+}
+
+describe('Book Model', function () {
+    /* eslint no-invalid-this: "off" */
+    const async = new AsyncSpec(this)
+
+    /* eslint prefer-arrow-callback: "off" */
+    async.beforeEach(done => {
+        auth.clearAccounts().
+        then(() => {
+            books.register({
+                body: {
+                    username: 'testuser',
+                    password: 'p455w0rd'
+                }
+            }, (err, data) => {
+                if (err) {
+                    console.log('creating failed')
+                    console.log(err.message)
+                }
+                done()
+            })
+        })
+   });
+
 	describe('search for books', () => {
-		
-		it('search for a recognised topic', done => {
-			setData('javascript.json')
-			books.search('javascript', 'http://example.com', (err, data) => {
-				expect(err).toBeNull()
-				expect(data).toBeDefined()
-				expect(data.length).toBe(third)
-				expect(data[zero].title).toBe('Eloquent JavaScript, 2nd Ed.')
-				expect(data[zero].link).toContain('http://example.com/books/')
-				done()
-			})
+
+		async.it(
+            'search for a recognised topic', done => {
+			try {
+                flag = false
+
+                books.search({
+                    params: {
+                        q: 'Security'
+                    }
+                }, (err, data) => {
+                    expect(err).toBe(null)
+                    expect(data.books.length).toBeGreaterThan(zero)
+                    setFlagAsTrue()
+                })
+
+                waitsFor(() => flag, 'Wait for flag', waitMiliSeconds)
+			} catch (err) {
+				fail('error should not be thrown')
+			} finally {
+                done()
+            }
 		})
-	
-		it('search for an unknown topic', done => {
-			setData('unknown.json')
-			books.search('dgfuhalgux', 'http://example.com', (err, data) => {
-				// Added to meet Eslit
-				expect(data).toBeNull()
-				expect(err).toBeDefined()
-				expect(err.message).toEqual('No Books Found')
-				done()
-			})
-		})
-		
-		it('search with a missing query', done => {
-			setData('missing.json')
-			books.search('', 'http://example.com', (err, data) => {
-				// Added to meet Eslit
-				expect(data).toBeNull()
-				expect(err).toBeDefined()
-				expect(err.message).toEqual('Missing Query Parameter')
-				done()
-			})
+        
+		async.it(
+            'search for an unrecognised topic', done => {
+			try {
+                flag = false
+
+                books.search({
+                    params: {
+                        q: 'abcdefgfedcba'
+                    }
+                }, (err, data) => {
+                    expect(err).toBe(null)
+                    expect(data.books.length).toBe(zero)
+                    setFlagAsTrue()
+                })
+
+                waitsFor(() => flag, 'Wait for flag', waitMiliSeconds)
+			} catch (err) {
+				fail('error should not be thrown')
+			} finally {
+                done()
+            }
 		})
 
-		it('search with a null query', done => {
-			setData('missing.json')
-			books.search(null, 'http://example.com', (err, data) => {
-				// Added to meet Eslit
-				expect(data).toBeNull()
-				expect(err).toBeDefined()
-				expect(err.message).toEqual('Missing Query Parameter')
-				done()
-			})
-		})
-	
-		it('search with missing domain parameter', done => {
-			setData('javascript.json')
-			books.search('javascript', '', (err, data) => {
-				// Added to meet Eslit
-				expect(data).toBeNull()
-				expect(err).toBeDefined()
-				expect(err.message).toEqual('Missing Host Parameter')
-				done()
-			})
-		})
-		
-		it('search with null domain parameter', done => {
-			setData('javascript.json')
-			books.search('javascript', '', (err, data) => {
-				// Added to meet Eslit
-				expect(data).toBeNull()
-				expect(err).toBeDefined()
-				expect(err.message).toEqual('Missing Host Parameter')
-				done()
-			})
-		})
-		
-	})
+		async.it(
+            'add to Cart', done => {
+			try {
+                flag = false
 
+                books.addToCart({
+                    authorization: {
+                        basic: {
+                            username: 'testuser',
+                            password: "p455w0rd"
+                        }
+                    },
+                    bookId: "bookId1",
+                    bookName: "bookName1"
+                }, (err, data) => {
+                    expect(err).toBe(null)
+                    expect(data.account).toBe('testuser')
+                    expect(data.title).toBe('bookName1')
+                    expect(data.bookId).toBe('bookId1')
+                    console.log(data)
+                    setFlagAsTrue()
+                })
+
+                waitsFor(() => flag, 'Wait for flag', waitMiliSeconds)
+			} catch (err) {
+                console.log(err)
+				fail('error should not be thrown')
+			} finally {
+                done()
+            }
+		})
+
+		async.it(
+            'add to Cart missing bookname', done => {
+			try {
+                flag = false
+
+                books.addToCart({
+                    authorization: {
+                        basic: {
+                            username: 'testuser',
+                            password: "p455w0rd"
+                        }
+                    },
+                    bookId: "bookId2"
+                }, (err, data) => {
+                    expect(err.message).toBe('missing book info in request body {bookId: "", bookName: ""}')
+                    setFlagAsTrue()
+                })
+
+                waitsFor(() => flag, 'Wait for flag', waitMiliSeconds)
+			} catch (err) {
+                console.log(err)
+				fail('error should not be thrown')
+			} finally {
+                done()
+            }
+		})
+
+		async.it(
+            'add to Cart missing bookId', done => {
+			try {
+                flag = false
+
+                books.addToCart({
+                    authorization: {
+                        basic: {
+                            username: 'testuser',
+                            password: "p455w0rd"
+                        }
+                    },
+                    bookName: "bookName2"
+                }, (err, data) => {
+                    expect(err.message).toBe('missing book info in request body {bookId: "", bookName: ""}')
+                    setFlagAsTrue()
+                })
+
+                waitsFor(() => flag, 'Wait for flag', waitMiliSeconds)
+			} catch (err) {
+                console.log(err)
+				fail('error should not be thrown')
+			} finally {
+                done()
+            }
+		})
+
+    })
 })

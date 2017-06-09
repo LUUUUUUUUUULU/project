@@ -8,7 +8,6 @@ const rewire = require('rewire')
 const persistence = require('../modules/persistence')
 const AsyncSpec = require('node-jasmine-async');
 
-//const auth = rewire('../modules/authorisation')
 const auth = rewire('../modules/authorisation')
 
 const one = 1

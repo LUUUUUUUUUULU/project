@@ -57,6 +57,26 @@ exports.addAccount = details => new Promise((resolve, reject) => {
 
 })
 
+exports.saveCart = cartDetails => new Promise((resolve, reject) => {
+	if (typeof cartDetails.account === 'undefiled' ||
+		typeof cartDetails.title === 'undefined' ||
+		typeof cartDetails.bookId === 'undefined') {
+		reject(new Error('invalid cart object'))
+	}
+	const cart = new schema.Cart(cartDetails)
+
+	cart.save((err, cartRow) => {
+		if (err) {
+			reject(new Error('an error saving cart'))
+		}
+		resolve({
+			account: cartRow.account,
+			title: cartRow.title,
+			bookId: cartRow.bookId
+		})
+	})
+})
+
 exports.saveBook = bookDetails => new Promise((resolve, reject) => {
 	if (!('title' in bookDetails) &&
 		!('authors' in bookDetails) &&

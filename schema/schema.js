@@ -28,14 +28,12 @@ const userSchema = new Schema({
 exports.User = mongoose.model('User', userSchema)
 
 // Create a schema
-const bookSchema = new Schema({
+const cartSchema = new Schema({
     account: String,
 	title: String,
-	authors: String,
-	description: String,
-    bookID: String
+    bookId: String
 })
 
 // Create a model using the schema
-exports.Book = mongoose.model('Book', bookSchema)
+exports.Cart = mongoose.model('Cart', cartSchema)
 

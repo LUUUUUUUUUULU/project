@@ -49,42 +49,17 @@ const cleanArray = (request, data) => new Promise(resolve => {
 	resolve({books: clean})
 })
 
-const removeMongoFields =
-	(request, data) => new Promise(resolve => {
-	const host = request.host || defaultHost;
-	const clean = data.map(element => {
-		if (typeof element !== 'undefined') {
-			return {
-				title: element.title,
-				link: `${host}/books/${element.bookID}`
-			}
-		}
-		
-		return null
-	})
-
-	resolve({books: clean})
-})
-
 // ------------------ ROUTE FUNCTIONS ------------------
 
 exports.search = (request, callback) => {
-	extractParam(request, 'q').then(query => amazon.searchByString(query)).
+	extractParam(request, 'q').
+	then(query => amazon.searchByString(query)).
 	then(data => cleanArray(request, data)).
 	then(data => {
 		callback(null, data)
 	}).
 	catch(err => {
-		callback(err)
-	})
-}
-
-exports.addToCartOld = (request, callback) => {
-	extractBodyKey(request, 'id').
-	then(id => amazon.getByID(id)).
-	then(book => persistence.saveBook(book)).
-	catch(err => {
-		callback(err)
+		callback(err, null)
 	})
 }
 
@@ -108,78 +83,23 @@ exports.addToCart = (request, callback) => {
 
 		return auth.checkPassword(temp.password, hash)
 	}).
-	then(() => extractBodyKey(request, 'id')).
-	then(id => {
-		temp.id = id
-
-		return amazon.getByID(id)
-	}).
-	then(book => {
-		temp.book = book
-
-		return persistence.bookExists(temp.username, temp.id)
-	}).
-	then(book => persistence.saveBook(book)).
-	then(book => {
-		// Original: delete book.account
-		Reflect.deleteProperty(book, 'account')
-		callback(null, book)
+	then(() => {
+		if (typeof request === 'undefined' ||
+			typeof request.bookId === 'undefined' ||
+			typeof request.bookName === 'undefined') {
+			throw new Error(
+				'missing book info in request body {bookId: "", bookName: ""}')
+		}
+		persistence.saveCart({
+			account: temp.username,
+			title: request.bookName,
+			bookId: request.bookId
+		}).then(bookInfo => {
+			callback(null, bookInfo)
+		})
 	}).
 	catch(err => {
-		callback(err)
-	})
-}
-
-exports.showCart = (request, callback) => {
-	const temp = {
-		username: null,
-		password: null
-	}
-
-	auth.getHeaderCredentials(request).
-	then(credentials => {
-		temp.username = credentials.username
-		temp.password = credentials.password
-
-		return auth.hashPassword(credentials)
-	}).
-	then(credentials => persistence.getCredentials(credentials)).
-	then(account => {
-		const hash = account[firstIndex].password
-
-		return auth.checkPassword(temp.password, hash)
-	}).
-	then(() => persistence.getBooksInCart(temp.username)).
-	then(books => removeMongoFields(request, books)).
-	then(books => {
-		callback(null, books)
-	}).
-	catch(err => {
-		callback(err)
-	})
-}
-
-exports.addUser = (request, callback) => {
-	let data = null
-
-	auth.getHeaderCredentials(request).
-	then(credentials => auth.hashPassword(credentials)).
-	then(credentials => {
-		data = credentials
-
-		return persistence.accountExists(credentials)
-	}).
-	then(() => extractBodyKey(request, 'name')).
-	then(name => {
-		data.name = name
-
-		return persistence.addAccount(data)
-	}).
-	then(accountInfo => {
-		callback(null, accountInfo)
-	}).
-	catch(err => {
-		callback(err)
+		callback(err, null)
 	})
 }
 
