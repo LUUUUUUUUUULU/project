@@ -58,7 +58,7 @@ exports.addAccount = details => new Promise((resolve, reject) => {
 })
 
 exports.saveCart = cartDetails => new Promise((resolve, reject) => {
-	if (typeof cartDetails.account === 'undefiled' ||
+	if (typeof cartDetails.account === 'undefined' ||
 		typeof cartDetails.title === 'undefined' ||
 		typeof cartDetails.bookId === 'undefined') {
 		reject(new Error('invalid cart object'))

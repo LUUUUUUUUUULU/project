@@ -1,32 +1,20 @@
-/* global describe beforeEach it expect fail waitsFor runs done */
+/* global describe expect fail waitsFor */
 /* eslint func-names: "off" */
 
 'use strict'
 
 // Original const fs = require('fs')
 const rewire = require('rewire')
-const persistence = require('../modules/persistence')
 const AsyncSpec = require('node-jasmine-async');
 const auth = rewire('../modules/authorisation')
 const books = rewire('../bookshop.js')
 
 const zero = 0
-const one = 1
 const waitMiliSeconds = 60000
 let flag = false
-let testReturn = null
 
 const setFlagAsTrue = () => {
 	flag = true;
-}
-
-const resolvedPromise = () => {
-    return Promise.resolve('Test')
-}
-
-const asyncFunc = async (asyncResource) => {
-    await resolvedPromise()
-    await asyncResource.fetchItem()
 }
 
 describe('Book Model', function () {
@@ -47,6 +35,7 @@ describe('Book Model', function () {
                     console.log('creating failed')
                     console.log(err.message)
                 }
+                expect(data).toBeDefined()
                 done()
             })
         })
@@ -59,11 +48,7 @@ describe('Book Model', function () {
 			try {
                 flag = false
 
-                books.search({
-                    params: {
-                        q: 'Security'
-                    }
-                }, (err, data) => {
+                books.search({params: {qry: 'Security'}}, (err, data) => {
                     expect(err).toBe(null)
                     expect(data.books.length).toBeGreaterThan(zero)
                     setFlagAsTrue()
@@ -82,11 +67,7 @@ describe('Book Model', function () {
 			try {
                 flag = false
 
-                books.search({
-                    params: {
-                        q: 'abcdefgfedcba'
-                    }
-                }, (err, data) => {
+                books.search({params: {qry: 'abcdefgfedcba'}}, (err, data) => {
                     expect(err).toBe(null)
                     expect(data.books.length).toBe(zero)
                     setFlagAsTrue()
@@ -109,11 +90,11 @@ describe('Book Model', function () {
                     authorization: {
                         basic: {
                             username: 'testuser',
-                            password: "p455w0rd"
+                            password: 'p455w0rd'
                         }
                     },
-                    bookId: "bookId1",
-                    bookName: "bookName1"
+                    bookId: 'bookId1',
+                    bookName: 'bookName1'
                 }, (err, data) => {
                     expect(err).toBe(null)
                     expect(data.account).toBe('testuser')
@@ -141,12 +122,16 @@ describe('Book Model', function () {
                     authorization: {
                         basic: {
                             username: 'testuser',
-                            password: "p455w0rd"
+                            password: 'p455w0rd'
                         }
                     },
-                    bookId: "bookId2"
+                    bookId: 'bookId2'
                 }, (err, data) => {
-                    expect(err.message).toBe('missing book info in request body {bookId: "", bookName: ""}')
+                    expect(err.message).
+                    toBe(
+                'missing book info in request body {bookId: "", bookName: ""}'
+                    )
+                    expect(data).toBeNull()
                     setFlagAsTrue()
                 })
 
@@ -168,12 +153,16 @@ describe('Book Model', function () {
                     authorization: {
                         basic: {
                             username: 'testuser',
-                            password: "p455w0rd"
+                            password: 'p455w0rd'
                         }
                     },
-                    bookName: "bookName2"
+                    bookName: 'bookName2'
                 }, (err, data) => {
-                    expect(err.message).toBe('missing book info in request body {bookId: "", bookName: ""}')
+                    expect(err.message).
+                    toBe(
+                'missing book info in request body {bookId: "", bookName: ""}'
+                    )
+                    expect(data).toBeNull()
                     setFlagAsTrue()
                 })
 

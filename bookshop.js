@@ -52,7 +52,7 @@ const cleanArray = (request, data) => new Promise(resolve => {
 // ------------------ ROUTE FUNCTIONS ------------------
 
 exports.search = (request, callback) => {
-	extractParam(request, 'q').
+	extractParam(request, 'qry').
 	then(query => amazon.searchByString(query)).
 	then(data => cleanArray(request, data)).
 	then(data => {
