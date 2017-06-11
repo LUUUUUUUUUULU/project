@@ -1,3 +1,4 @@
+/* eslint max-lines: "off" */
 
 'use strict'
 
@@ -138,6 +139,111 @@ exports.addToCart = (request, callback) => {
 			account: temp.username,
 			title: request.params.bookName,
 			bookId: request.params.bookId
+		}).then(bookInfo => {
+			callback(null, bookInfo)
+		})
+	}).
+	catch(err => {
+		callback(err, null)
+	})
+}
+
+/**
+ * Create Order for index.js
+ * @param {Object} request - The request from client
+ * @param {Function} callback - The callback function called after added to cart
+ * @returns {Object} Nothing
+ */
+exports.addOrder = (request, callback) => {
+	const temp = {
+			username: null,
+			password: null,
+			id: null
+	}
+
+	auth.getHeaderCredentials(request).
+	then(credentials => {
+		temp.username = credentials.username
+		temp.password = credentials.password
+
+		return auth.hashPassword(credentials)
+	}).
+	then(credentials => persistence.getCredentials(credentials)).
+	then(account => {
+		const hash = account[firstIndex].password
+
+		return auth.checkPassword(temp.password, hash)
+	}).
+	then(() => {
+		if (typeof request === 'undefined' ||
+			typeof request.params === 'undefined' ||
+			typeof request.params.bookId === 'undefined' ||
+			typeof request.params.bookName === 'undefined' ||
+			typeof request.params.storeOwner === 'undefined' ||
+			typeof request.params.quantity === 'undefined') {
+			throw new Error(
+	'missing book info in request body ' +
+	'{bookId: "", bookName: "", storeOwner: "", quantity: 0}')
+		}
+		persistence.saveOrder({
+			account: temp.username,
+			title: request.params.bookName,
+			bookId: request.params.bookId,
+			storeOwner: request.params.storeOwner,
+			quantity: request.params.quantity
+		}).then(bookInfo => {
+			callback(null, bookInfo)
+		})
+	}).
+	catch(err => {
+		callback(err, null)
+	})
+}
+
+/**
+ * Add to shopstock api for index.js
+ * @param {Object} request - The request from client
+ * @param {Function} callback - The callback function called after added to cart
+ * @returns {Object} Nothing
+ */
+exports.addToShopStock = (request, callback) => {
+	const temp = {
+			username: null,
+			password: null,
+			id: null
+	}
+
+	auth.getHeaderCredentials(request).
+	then(credentials => {
+		temp.username = credentials.username
+		temp.password = credentials.password
+
+		return auth.hashPassword(credentials)
+	}).
+	then(credentials => persistence.getCredentials(credentials)).
+	then(account => {
+		const hash = account[firstIndex].password
+
+		return auth.checkPassword(temp.password, hash)
+	}).
+	then(() => {
+		if (typeof request === 'undefined' ||
+			typeof request.params === 'undefined' ||
+			typeof request.params.bookId === 'undefined' ||
+			typeof request.params.bookName === 'undefined' ||
+			typeof request.params.price === 'undefined' ||
+			typeof request.params.quantity === 'undefined') {
+			throw new Error(
+				'missing book info in request body ' +
+				'{bookId: "", bookName: "", price: 0, quantity: 0}'
+			)
+		}
+		persistence.saveBookStore({
+			account: temp.username,
+			title: request.params.bookName,
+			bookId: request.params.bookId,
+			price: request.params.price,
+			quantity: request.params.quantity
 		}).then(bookInfo => {
 			callback(null, bookInfo)
 		})

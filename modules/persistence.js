@@ -14,6 +14,32 @@ const zeroLength = 0
 const firstIndex = 0
 
 /**
+ * Adds the book into the book store
+ * @param {Json} bookstoreDetails - The account and book information
+ * @returns {Object} The cart information
+ */
+const getBookFromBookStore =
+	bookstoreDetails => new Promise((resolve, reject) => {
+	if (typeof bookstoreDetails.account === 'undefined' ||
+		typeof bookstoreDetails.bookId === 'undefined') {
+			console.log(bookstoreDetails)
+		reject(new Error('invalid book store object'))
+	}
+	schema.Bookstock.find(bookstoreDetails, (err, docs) => {
+		if (err) {
+			reject(new Error('an error getting from book store'))
+		}
+		if (docs.length === zeroLength) {
+			reject(new Error('did not find from book store'))
+		}
+		resolve(docs[firstIndex])
+	}).
+	catch(err => {
+		console.log(err.message)
+	})
+})
+
+/**
  * Clear all accounts in database
  * @returns {Object} Nothing
  */
@@ -72,8 +98,6 @@ exports.addAccount = details => new Promise((resolve, reject) => {
 			})
 		})
 	})
-
-
 })
 
 /**
@@ -98,6 +122,80 @@ exports.saveCart = cartDetails => new Promise((resolve, reject) => {
 			title: cartRow.title,
 			bookId: cartRow.bookId
 		})
+	})
+})
+
+/**
+ * Adds the book into the book store
+ * @param {Json} bookstoreDetails - The account and book information
+ * @returns {Object} The cart information
+ */
+exports.saveBookStore = bookstoreDetails => new Promise((resolve, reject) => {
+	if (typeof bookstoreDetails.account === 'undefined' ||
+		typeof bookstoreDetails.title === 'undefined' ||
+		typeof bookstoreDetails.bookId === 'undefined' ||
+		typeof bookstoreDetails.price === 'undefined' ||
+		typeof bookstoreDetails.quantity === 'undefined') {
+		reject(new Error('invalid book store object'))
+	}
+	const bookstore = new schema.Bookstock(bookstoreDetails)
+
+	bookstore.save((err, bookstoreRow) => {
+		if (err) {
+			reject(new Error('an error saving book store'))
+		}
+		resolve({
+			account: bookstoreRow.account,
+			title: bookstoreRow.title,
+			bookId: bookstoreRow.bookId,
+			price: bookstoreRow.price,
+			quantity: bookstoreRow.quantity
+		})
+	})
+})
+
+/**
+ * Creates order
+ * @param {Json} orderDetails - The account and book information
+ * @returns {Object} The cart information
+ */
+exports.saveOrder = orderDetails => new Promise((resolve, reject) => {
+	if (typeof orderDetails.account === 'undefined' ||
+		typeof orderDetails.title === 'undefined' ||
+		typeof orderDetails.bookId === 'undefined' ||
+		typeof orderDetails.storeOwner === 'undefined' ||
+		typeof orderDetails.quantity === 'undefined') {
+		reject(new Error('invalid book store object'))
+	}
+	const order = new schema.Order(orderDetails)
+
+	order.save((err, orderRow) => {
+		if (err || orderRow === null) {
+			reject(new Error('an error saving book store'))
+		} else {
+			getBookFromBookStore({
+				account: orderDetails.storeOwner,
+				bookId: orderDetails.bookId
+			}).
+			then(doc => {
+				console.log('operating0...')
+				console.log(doc)
+				console.log('operating1...')
+				console.log(orderDetails)
+				console.log('operating2...')
+					doc.quantity -= orderDetails.quantity
+					doc.save((err2, bookstoreRow) => {
+						if (err2) {
+							reject(err2)
+						} else {
+			resolve({totalPrice: orderDetails.quantity * bookstoreRow.price})
+						}
+					})
+			}).
+			catch(err1 => {
+				console.log(err1.message)
+			})
+		}
 	})
 })
 
@@ -150,7 +248,8 @@ exports.getCredentials = credentials => new Promise((resolve, reject) => {
 		}
 		if (docs.length) {
 			resolve(docs)
+		} else {
+			reject(new Error('invalid username'))
 		}
-		reject(new Error('invalid username'))
 	})
 })

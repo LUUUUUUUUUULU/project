@@ -73,6 +73,43 @@ server.post('/cart', (req, res) => {
 	})
 })
 
+/**
+ * @api {post} /bookstore Adding book into book store
+ * @apiGroup Books
+ * @apiParam {Json} Book information
+ */
+server.post('/bookstore', (req, res) => {
+	bookshop.addToShopStock(req, (err, data) => {
+		res.setHeader('content-type', 'application/json')
+		res.setHeader('accepts', 'GET, POST')
+		if (err) {
+			res.send(status.badRequest, {error: err.message})
+		} else {
+			
+			res.send(status.added, {book: data})
+		}
+		res.end()
+	})
+})
+
+/**
+ * @api {post} /order Creating order
+ * @apiGroup Books
+ * @apiParam {Json} Book information
+ */
+server.post('/order', (req, res) => {
+	bookshop.addOrder(req, (err, data) => {
+		res.setHeader('content-type', 'application/json')
+		res.setHeader('accepts', 'GET, POST')
+		if (err) {
+			res.send(status.badRequest, {error: err.message})
+		} else {
+			
+			res.send(status.added, {book: data})
+		}
+		res.end()
+	})
+})
 
 /**
  * @api {post} /login Login the server

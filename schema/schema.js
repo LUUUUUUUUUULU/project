@@ -37,3 +37,27 @@ const cartSchema = new Schema({
 // Create a model using the schema
 exports.Cart = mongoose.model('Cart', cartSchema)
 
+// Create a schema
+const bookstockSchema = new Schema({
+    account: String,
+	title: String,
+    bookId: String,
+	price: Number,
+	quantity: Number
+})
+
+// Create a model using the schema
+exports.Bookstock = mongoose.model('BookStock', bookstockSchema)
+
+// Create a schema
+const orderSchema = new Schema({
+    account: String,
+	title: String,
+    bookId: String,
+	price: Number,
+	quantity: Number,
+	bookOwner: String
+})
+
+// Create a model using the schema
+exports.Order = mongoose.model('Order', orderSchema)
