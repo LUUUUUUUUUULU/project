@@ -3,7 +3,7 @@
 
 const request = require('request');
 const jsdom = require('jsdom');
-const JSDOM = jsdom;
+const {JSDOM} = jsdom;
 
 exports.searchByString = query => new Promise((resolve, reject) => {
 	const url = 'https://www.amazon.co.uk/s/ref=nb_sb_noss_2' +
